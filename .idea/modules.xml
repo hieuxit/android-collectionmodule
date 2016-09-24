@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file:///Data/work/workspace/fruitful/architec/android-viewmodel/android-viewmodel.iml" filepath="/Data/work/workspace/fruitful/architec/android-viewmodel/android-viewmodel.iml" />
+      <module fileurl="file:///Data/work/workspace/fruitful/architec/android-viewmodel/library/library.iml" filepath="/Data/work/workspace/fruitful/architec/android-viewmodel/library/library.iml" />
+      <module fileurl="file:///Data/work/workspace/fruitful/architec/android-viewmodel/sample/sample.iml" filepath="/Data/work/workspace/fruitful/architec/android-viewmodel/sample/sample.iml" />
+    </modules>
+  </component>
+</project>
