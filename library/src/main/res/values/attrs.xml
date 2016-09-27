@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="EmptyView">
+        <attr name="epv_description" format="string|reference"></attr>
+        <attr name="epv_error_description" format="string|reference"></attr>
+        <attr name="epv_mode">
+            <flag name="normal" value="0x00" />
+            <flag name="hide" value="0x01" />
+            <flag name="progress" value="0x02" />
+            <flag name="error" value="0x03" />
+        </attr>
+        <attr name="epv_empty_view" format="reference"></attr>
+    </declare-styleable>
+</resources>

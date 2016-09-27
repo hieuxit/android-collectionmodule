@@ -1,4 +1,4 @@
-package io.fruitful.viewmodel;
+package io.fruitful.collectionmodule;
 
 import org.junit.Test;
 

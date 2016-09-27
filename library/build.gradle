@@ -38,6 +38,11 @@ dependencies {
     compile deps.appcompat_v7
     compile deps.support_annotations
     compile deps.support_design
+    compile deps.recyclerview_v7
+    compile deps.rx_java
+    compile deps.rx_android
+
+    compile 'com.timehop.stickyheadersrecyclerview:library:0.4.3@aar'
 
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'

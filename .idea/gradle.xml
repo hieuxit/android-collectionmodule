@@ -7,9 +7,9 @@
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
         <option name="modules">
           <set>
-            <option value="/Data/work/workspace/fruitful/architec/android-viewmodel" />
-            <option value="/Data/work/workspace/fruitful/architec/android-viewmodel/library" />
-            <option value="/Data/work/workspace/fruitful/architec/android-viewmodel/sample" />
+            <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/library" />
+            <option value="$PROJECT_DIR$/sample" />
           </set>
         </option>
         <option name="resolveModulePerSourceSet" value="false" />
