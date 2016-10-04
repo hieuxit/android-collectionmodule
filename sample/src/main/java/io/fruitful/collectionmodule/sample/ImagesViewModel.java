@@ -1,5 +1,6 @@
 package io.fruitful.collectionmodule.sample;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -49,7 +50,7 @@ public class ImagesViewModel extends CollectionViewModel<List<String >, String> 
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                return Observable.just(Arrays.asList(URLS));
+                return Observable.just((List<String>)new ArrayList<>(Arrays.asList(URLS)));
             }
         }).subscribeOn(Schedulers.io());
     }

@@ -12,7 +12,6 @@ import io.fruitful.collectionmodule.view.EmptyView;
 import io.fruitful.collectionmodule.view.RecyclerAdapter;
 import rx.Observable;
 import rx.Subscriber;
-import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.subjects.BehaviorSubject;
 import rx.subscriptions.CompositeSubscription;
@@ -41,13 +40,17 @@ public abstract class CollectionViewModel<ResponseType, Item> extends ViewModel 
     /**
      * binding with PTRL listener ( custom setter of Android Data Binding )
      */
-    @Bindable
-    public Action1<Void> onRefresh = new Action1<Void>() {
-        @Override
-        public void call(Void aVoid) {
-            refresh();
-        }
-    };
+//    @Bindable
+//    public Action1<Void> onRefresh = new Action1<Void>() {
+//        @Override
+//        public void call(Void aVoid) {
+//            refresh();
+//        }
+//    };
+
+//    public void onRefresh(){
+//        refresh();
+//    }
 
     /**
      * Flag make PULL TO REFRESH show|hide the circle progress
@@ -134,6 +137,10 @@ public abstract class CollectionViewModel<ResponseType, Item> extends ViewModel 
         return CollectionBinding.from(source(), transformer())
                 .withAdapter(adapter)
                 .build();
+    }
+
+    public void pullToRefresh() {
+        refresh();
     }
 
     @Override
