@@ -32,10 +32,8 @@
         <io.fruitful.collectionmodule.view.EmptyView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            app:emptyViewMode="@{vm.emptyViewMode}"
-            app:emptyViewRetry="@{vm.onRetryListener}"
-            app:epv_description="No Result"
-            app:epv_error_description="Error here" />
+            app:emptyMode="@{vm.emptyViewMode}"
+            app:onRetryClickListener="@{vm.onRetryListener}"/>
 
 
     </RelativeLayout>

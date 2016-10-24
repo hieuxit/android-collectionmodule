@@ -9,7 +9,7 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
-
+        vectorDrawables.useSupportLibrary = true
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
     }
@@ -29,8 +29,6 @@ android {
         targetCompatibility rootProject.ext.targetCompatibilityVersion
     }
 }
-
-
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])

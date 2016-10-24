@@ -9,6 +9,7 @@ import java.util.List;
 import io.fruitful.collectionmodule.BR;
 import io.fruitful.collectionmodule.rx.CollectionBinding;
 import io.fruitful.collectionmodule.view.EmptyView;
+import io.fruitful.collectionmodule.view.IEmptyView;
 import io.fruitful.collectionmodule.view.RecyclerAdapter;
 import rx.Observable;
 import rx.Subscriber;
@@ -28,43 +29,14 @@ public abstract class CollectionViewModel<ResponseType, Item> extends ViewModel 
 
     RecyclerAdapter adapter;
 
-    @Bindable
-    public RecyclerAdapter getAdapter() {
-        return adapter;
-    }
-
-    @Bindable
-    @EmptyView.Mode
-    public int emptyViewMode = EmptyView.HIDE;
-
-    /**
-     * binding with PTRL listener ( custom setter of Android Data Binding )
-     */
-//    @Bindable
-//    public Action1<Void> onRefresh = new Action1<Void>() {
-//        @Override
-//        public void call(Void aVoid) {
-//            refresh();
-//        }
-//    };
-
-//    public void onRefresh(){
-//        refresh();
-//    }
+    @IEmptyView.Mode
+    private int emptyViewMode = EmptyView.HIDE;
 
     /**
      * Flag make PULL TO REFRESH show|hide the circle progress
      * set flag to false when received data
      */
-    @Bindable
-    public boolean refreshing;
-
-    /**
-     * flag regardless circle progress of PTRL showing when user pull to refresh
-     * use must set to true with a paging view model (has its own progress) and
-     * pull to refresh layout is implemented
-     */
-    private boolean disableRefreshing;
+    private boolean refreshing;
 
     /**
      * flag regardless empty view.
@@ -104,7 +76,9 @@ public abstract class CollectionViewModel<ResponseType, Item> extends ViewModel 
     }
 
     public void connect() {
-        if (!disableEmptyView) {
+        if (disableEmptyView) {
+            setEmptyViewMode(EmptyView.HIDE);
+        } else {
             setEmptyViewMode(EmptyView.PROGRESS);
         }
         collectionBinding.connect();
@@ -118,10 +92,9 @@ public abstract class CollectionViewModel<ResponseType, Item> extends ViewModel 
         if (this.refreshBinding != null) {
             this.refreshBinding.disconnect();
         }
-        if (disableRefreshing) {
-            setRefreshing(false);
-        }
-        if (!disableEmptyView) {
+        if (disableEmptyView) {
+            setEmptyViewMode(EmptyView.HIDE);
+        } else {
             setEmptyViewMode(EmptyView.PROGRESS);
         }
         if (resetWhenRefresh && collectionBinding != null) {
@@ -139,7 +112,13 @@ public abstract class CollectionViewModel<ResponseType, Item> extends ViewModel 
                 .build();
     }
 
+    /**
+     * Do not manually call this method. This method is public for binding purpose
+     */
     public void pullToRefresh() {
+        // Pull to refresh. Hide all empty view or progress item on PagingRecyclerAdapter
+        setDisableEmptyView(true);
+        setEmptyViewMode(EmptyView.HIDE);
         refresh();
     }
 
@@ -178,58 +157,102 @@ public abstract class CollectionViewModel<ResponseType, Item> extends ViewModel 
         // do whatever you want with the response data
     }
 
-    private void setEmptyViewMode(@EmptyView.Mode int mode) {
+    protected void setEmptyViewMode(@EmptyView.Mode int mode) {
         this.emptyViewMode = mode;
         notifyPropertyChanged(BR.emptyViewMode);
     }
 
-    public View.OnClickListener onRetryListener = new View.OnClickListener() {
+    private View.OnClickListener onRetryListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            refresh();
+            onClickRetryEmptyView();
         }
     };
 
-    public void setDisableEmptyView(boolean disableEmptyView) {
+    void setDisableEmptyView(boolean disableEmptyView) {
         this.disableEmptyView = disableEmptyView;
-    }
-
-    public void setDisableRefreshing(boolean disableRefreshing) {
-        this.disableRefreshing = disableRefreshing;
     }
 
     public void setResetWhenRefresh(boolean flag) {
         this.resetWhenRefresh = flag;
     }
 
-    private void setRefreshing(boolean refreshing) {
+    public boolean isDisableEmptyView() {
+        return disableEmptyView;
+    }
+
+    protected void setRefreshing(boolean refreshing) {
         this.refreshing = refreshing;
         notifyPropertyChanged(BR.refreshing);
+    }
+
+    void onClickRetryEmptyView() {
+        // Hide pull to refresh
+        // hide EmptyView error
+        setRefreshing(false);
+        setDisableEmptyView(false);
+        refresh();
+    }
+
+    void onNextEmptyView(List<Item> items) {
+        setRefreshing(false);
+        if ((items == null || items.isEmpty()) && isAdapterEmpty()) {
+            setEmptyViewMode(EmptyView.NORMAL);
+        } else {
+            setEmptyViewMode(EmptyView.HIDE);
+        }
+    }
+
+    void onErrorEmptyView() {
+        setEmptyViewMode(EmptyView.ERROR);
+        // If pull to refresh, hide it
+        setRefreshing(false);
+        // If we pull to refresh, disableEmptyView is true. We make it false to later use
+        setDisableEmptyView(false);
+    }
+
+    protected boolean isAdapterEmpty() {
+        return adapter.isEmpty();
+    }
+
+    // *********************************   BINDING   ***************************************
+
+    @Bindable
+    @IEmptyView.Mode
+    public int getEmptyViewMode() {
+        return emptyViewMode;
+    }
+
+    @Bindable
+    public RecyclerAdapter getAdapter() {
+        return adapter;
+    }
+
+    @Bindable
+    public boolean isRefreshing() {
+        return refreshing;
+    }
+
+    public View.OnClickListener getOnRetryListener() {
+        return onRetryListener;
     }
 
     class EmptyViewSubscriber extends Subscriber<List<Item>> {
 
         @Override
         public void onCompleted() {
+
         }
 
         @Override
         public void onError(Throwable e) {
             e.printStackTrace();
-            setEmptyViewMode(EmptyView.ERROR);
+            onErrorEmptyView();
         }
 
         @Override
         public void onNext(List<Item> items) {
-            if ((items == null || items.isEmpty()) && isAdapterEmpty()) {
-                setEmptyViewMode(EmptyView.NORMAL);
-            } else {
-                setEmptyViewMode(EmptyView.HIDE);
-            }
-        }
-
-        private boolean isAdapterEmpty() {
-            return adapter.isEmpty();
+            onNextEmptyView(items);
         }
     }
 
@@ -248,14 +271,21 @@ public abstract class CollectionViewModel<ResponseType, Item> extends ViewModel 
                 collectionBinding.adapter().onError(e);
             }
             refreshBinding = null;
-            setEmptyViewMode(EmptyView.ERROR);
+            onErrorEmptyView();
         }
 
         @Override
         public void onNext(Iterable<Item> items) {
+            // Clear all adapter after got items
             collectionBinding.adapter().clear();
+            // Then using refreshBinding to bind with the current adapter
             resetToBinding(refreshBinding);
             refreshBinding = null;
+            // If we pull to refresh, disableEmptyView is true. We make it false to later use
+            setDisableEmptyView(false);
+            // hide pull to refresh
+            setRefreshing(false);
+            // Do not subscribe anymore
             this.unsubscribe();
         }
     }
@@ -263,7 +293,7 @@ public abstract class CollectionViewModel<ResponseType, Item> extends ViewModel 
     class AfterSourceChangedSubscriber extends Subscriber<List<Item>> {
         @Override
         public void onCompleted() {
-            setRefreshing(false);
+
         }
 
         @Override

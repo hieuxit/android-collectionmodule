@@ -16,7 +16,7 @@ public abstract class PagingRecyclerAdapter<Item> extends RecyclerAdapter<Item> 
     public static final int TYPE_ITEM = 4;
     public static final int TYPE_MAX = TYPE_ITEM;
 
-    private PagingAwareAdapter.PagingState pagingState = PagingState.LOADING;
+    private PagingAwareAdapter.PagingState pagingState = PagingState.IDLE;
     private View.OnClickListener onRetryClickListener;
     private OnNextPageListener onNextPageListener;
 
@@ -126,8 +126,8 @@ public abstract class PagingRecyclerAdapter<Item> extends RecyclerAdapter<Item> 
     }
 
     protected View createPagingErrorView(LayoutInflater inflater, ViewGroup parent) {
-        View errorView = inflater.inflate(R.layout.layout_paging_error, parent, false);
-        errorView.findViewById(R.id.bt_paging_retry).setOnClickListener(onRetryClickListener);
+        PagingErrorView errorView = (PagingErrorView) inflater.inflate(R.layout.paging_error_view, parent, false);
+        errorView.setOnRetryClickListener(onRetryClickListener);
         return errorView;
     }
 

@@ -1,14 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <declare-styleable name="EmptyView">
-        <attr name="epv_description" format="string|reference"></attr>
-        <attr name="epv_error_description" format="string|reference"></attr>
-        <attr name="epv_mode">
+        <attr name="emptyText" format="string|reference" />
+        <attr name="emptyErrorText" format="string|reference" />
+        <attr name="emptyMode">
             <flag name="normal" value="0x00" />
             <flag name="hide" value="0x01" />
             <flag name="progress" value="0x02" />
             <flag name="error" value="0x03" />
         </attr>
-        <attr name="epv_empty_view" format="reference"></attr>
+        <attr name="emptyCustomView" format="reference" />
+        <attr name="emptyTextAppearance" format="reference" />
+        <attr name="emptyErrorTextAppearance" format="reference" />
+        <attr name="emptyRetryButtonColor" format="color|reference" />
+        <attr name="emptyRetryButtonTextColor" format="color|reference" />
+        <attr name="emptyRetryButtonText" format="string|reference" />
     </declare-styleable>
+
+    <declare-styleable name="PagingErrorView">
+        <attr name="pagingErrorText" format="string|reference" />
+        <attr name="pagingErrorTextAppearance" format="reference" />
+        <attr name="pagingRetryButtonColor" format="color|reference" />
+        <attr name="pagingRetryButtonTextColor" format="color|reference" />
+        <attr name="pagingRetryButtonText" format="string|reference" />
+    </declare-styleable>
+
+    <declare-styleable name="TintProgressBar">
+        <attr name="progressColor" format="color|reference" />
+    </declare-styleable>
+
+    <declare-styleable name="CollectionModuleStyle">
+        <attr name="defaultEmptyViewStyle" format="reference" />
+        <attr name="defaultPagingProgressStyle" format="reference" />
+        <attr name="defaultPagingErrorStyle" format="reference" />
+        <attr name="defaultProgressViewStyle" format="reference" />
+    </declare-styleable>
+
 </resources>

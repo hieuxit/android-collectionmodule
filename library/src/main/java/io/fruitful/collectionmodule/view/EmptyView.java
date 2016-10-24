@@ -1,35 +1,28 @@
 package io.fruitful.collectionmodule.view;
 
 import android.content.Context;
+import android.content.res.ColorStateList;
 import android.content.res.TypedArray;
-import android.support.annotation.IntDef;
+import android.graphics.Color;
+import android.support.annotation.ColorInt;
 import android.support.annotation.LayoutRes;
+import android.support.annotation.StyleRes;
+import android.support.v4.view.ViewCompat;
+import android.support.v4.widget.TextViewCompat;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
 
 import io.fruitful.collectionmodule.R;
 
 /**
  * EmptyView class with a text description and a button.
  */
-public class EmptyView extends RelativeLayout {
-
-    public static final int NORMAL = 0;
-    public static final int HIDE = 1;
-    public static final int PROGRESS = 2;
-    public static final int ERROR = 3;
-
-    @IntDef({NORMAL, HIDE, PROGRESS, ERROR})
-    @Retention(RetentionPolicy.SOURCE)
-    public @interface Mode {
-    }
+public class EmptyView extends RelativeLayout implements IEmptyView {
 
     private View mEmptyView;
     private ViewGroup mCustomEmptyViewContainer;
@@ -37,7 +30,7 @@ public class EmptyView extends RelativeLayout {
     private TextView mTextErrorDescription;
     private View mProgress;
     private View mErrorView;
-    private View mBtnRetry;
+    private Button mBtnRetry;
     private View mCustomEmptyView;
 
     public EmptyView(Context context) {
@@ -45,7 +38,7 @@ public class EmptyView extends RelativeLayout {
     }
 
     public EmptyView(Context context, AttributeSet attrs) {
-        this(context, attrs, 0);
+        this(context, attrs, R.attr.defaultEmptyViewStyle);
     }
 
     public EmptyView(Context context, AttributeSet attrs, int defStyleAttr) {
@@ -60,17 +53,37 @@ public class EmptyView extends RelativeLayout {
         mTextErrorDescription = (TextView) view.findViewById(R.id.empty_error_description);
         mProgress = view.findViewById(R.id.empty_progress);
         mErrorView = view.findViewById(R.id.empty_error);
-        mBtnRetry = view.findViewById(R.id.empty_retry);
+        mBtnRetry = (Button) view.findViewById(R.id.empty_retry);
 
         if (attrs != null) {
             TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.EmptyView,
-                    defStyleAttr, 0);
-            setEpv_description(a.getString(R.styleable.EmptyView_epv_description));
-            setErrorDescription(a.getString(R.styleable.EmptyView_epv_error_description));
-            int emptyViewResId = a.getResourceId(R.styleable.EmptyView_epv_empty_view, -1);
+                    defStyleAttr, R.style.EmptyViewStyle);
+            setEmptyText(a.getString(R.styleable.EmptyView_emptyText));
+            setEmptyErrorText(a.getString(R.styleable.EmptyView_emptyErrorText));
+            setEmptyButtonText(a.getString(R.styleable.EmptyView_emptyRetryButtonText));
+            int textAppearanceId = a.getResourceId(R.styleable.EmptyView_emptyTextAppearance, -1);
+            if (textAppearanceId > 0) {
+                setEmptyTextAppearance(textAppearanceId);
+            }
+
+            int errorTextAppearanceId = a.getResourceId(R.styleable.EmptyView_emptyErrorTextAppearance, -1);
+            if (errorTextAppearanceId > 0) {
+                setEmptyErrorTextAppearance(errorTextAppearanceId);
+            }
+
+            if (a.hasValue(R.styleable.EmptyView_emptyRetryButtonColor)) {
+                setEmptyButtonColor(a.getColor(R.styleable.EmptyView_emptyRetryButtonColor, Color.GRAY));
+            }
+
+            if (a.hasValue(R.styleable.EmptyView_emptyRetryButtonTextColor)) {
+                setEmptyButtonTextColor(a.getColor(R.styleable.EmptyView_emptyRetryButtonTextColor, Color.WHITE));
+            }
+
+            int emptyViewResId = a.getResourceId(R.styleable.EmptyView_emptyCustomView, -1);
             if (emptyViewResId > 0) {
                 setCustomEmptyView(inflater.inflate(emptyViewResId, mCustomEmptyViewContainer, false));
             }
+
             a.recycle();
         }
         ensureShowCustomEmptyView();
@@ -94,15 +107,24 @@ public class EmptyView extends RelativeLayout {
         ensureShowCustomEmptyView();
     }
 
-    public void setCustomEmptyView(@LayoutRes int resId) {
-        setCustomEmptyView(LayoutInflater.from(getContext()).inflate(resId, mCustomEmptyViewContainer, false));
+    private void display(boolean visible, boolean emptyViewVisible, boolean progressVisible,
+                         boolean errorVisible) {
+        if (!visible) {
+            setVisibility(GONE);
+            return;
+        }
+        setVisibility(VISIBLE);
+        mEmptyView.setVisibility(emptyViewVisible ? VISIBLE : GONE);
+        mProgress.setVisibility(progressVisible ? VISIBLE : GONE);
+        mErrorView.setVisibility(errorVisible ? VISIBLE : GONE);
     }
 
     public View getCustomEmptyView() {
         return mCustomEmptyView;
     }
 
-    public void setMode(@Mode int mode) {
+    @Override
+    public void setEmptyMode(@Mode int mode) {
         switch (mode) {
             case NORMAL:
                 display(true, true, false, false);
@@ -122,27 +144,48 @@ public class EmptyView extends RelativeLayout {
         }
     }
 
-    private void display(boolean visible, boolean emptyViewVisible, boolean progressVisible,
-                         boolean errorVisible) {
-        if (!visible) {
-            setVisibility(GONE);
-            return;
-        }
-        setVisibility(VISIBLE);
-        mEmptyView.setVisibility(emptyViewVisible ? VISIBLE : GONE);
-        mProgress.setVisibility(progressVisible ? VISIBLE : GONE);
-        mErrorView.setVisibility(errorVisible ? VISIBLE : GONE);
+    @Override
+    public void setEmptyText(CharSequence emptyText) {
+        mTextDescription.setText(emptyText);
     }
 
-    public void setEpv_description(CharSequence description) {
-        mTextDescription.setText(description);
+    @Override
+    public void setEmptyErrorText(CharSequence errorText) {
+        mTextErrorDescription.setText(errorText);
     }
 
-    public void setErrorDescription(CharSequence errorDescription) {
-        mTextErrorDescription.setText(errorDescription);
-    }
-
+    @Override
     public void setOnRetryClickListener(OnClickListener listener) {
         mBtnRetry.setOnClickListener(listener);
+    }
+
+    @Override
+    public void setEmptyTextAppearance(@StyleRes int resId) {
+        TextViewCompat.setTextAppearance(mTextDescription, resId);
+    }
+
+    @Override
+    public void setEmptyErrorTextAppearance(@StyleRes int resId) {
+        TextViewCompat.setTextAppearance(mTextErrorDescription, resId);
+    }
+
+    @Override
+    public void setEmptyButtonTextColor(@ColorInt int color) {
+        mBtnRetry.setTextColor(color);
+    }
+
+    @Override
+    public void setEmptyButtonText(CharSequence retryText) {
+        mBtnRetry.setText(retryText);
+    }
+
+    @Override
+    public void setEmptyButtonColor(@ColorInt int color) {
+        ViewCompat.setBackgroundTintList(mBtnRetry, ColorStateList.valueOf(color));
+    }
+
+    @Override
+    public void setCustomEmptyView(@LayoutRes int resId) {
+        setCustomEmptyView(LayoutInflater.from(getContext()).inflate(resId, mCustomEmptyViewContainer, false));
     }
 }

@@ -2,20 +2,19 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@android:color/white"
     android:padding="16dp">
 
     <TextView
-        android:id="@+id/text_paging_error"
+        android:id="@+id/paging_text_error"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center" />
 
     <Button
-        android:id="@+id/bt_paging_retry"
+        android:id="@+id/paging_bt_retry"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/text_paging_error"
+        android:layout_below="@+id/paging_text_error"
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="8dp" />
 </RelativeLayout>

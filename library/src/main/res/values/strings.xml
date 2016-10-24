@@ -1,3 +1,6 @@
 <resources>
-    <string name="app_name">fruiting-lib</string>
+    <string name="app_name">CollectionModule</string>
+    <string name="empty_no_result">No Result</string>
+    <string name="collection_module_error">An error occur. Press below button to retry</string>
+    <string name="collection_module_retry">Retry</string>
 </resources>

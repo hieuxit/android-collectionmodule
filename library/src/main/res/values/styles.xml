@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="EmptyViewStyle">
+        <item name="emptyText">@string/empty_no_result</item>
+        <item name="emptyErrorText">@string/collection_module_error</item>
+        <item name="emptyRetryButtonText">@string/collection_module_retry</item>
+        <item name="emptyRetryButtonColor">#aaaaaa</item>
+        <item name="emptyRetryButtonTextColor">@android:color/white</item>
+        <item name="emptyTextAppearance">@style/CMTextAppearance</item>
+        <item name="emptyErrorTextAppearance">@style/CMErrorTextAppearance</item>
+    </style>
+
+    <style name="PagingErrorViewStyle">
+        <item name="pagingErrorText">@string/collection_module_error</item>
+        <item name="pagingRetryButtonTextColor">@android:color/white</item>
+        <item name="pagingRetryButtonText">@string/collection_module_retry</item>
+        <item name="pagingRetryButtonColor">#aaaaaa</item>
+        <item name="pagingErrorTextAppearance">@style/CMTextAppearance</item>
+    </style>
+
+    <style name="ProgressViewStyle">
+        <item name="progressColor">#80f</item>
+    </style>
+
+    <style name="CMTextAppearance" parent="@android:style/TextAppearance.Small">
+        <item name="android:textColor">#aaaaaa</item>
+    </style>
+
+    <style name="CMErrorTextAppearance" parent="@android:style/TextAppearance.Small">
+        <item name="android:textColor">#aaaaaa</item>
+    </style>
+
+    <style name="CollectionProgress" parent="@style/Widget.AppCompat.ProgressBar">
+        <item name="android:indeterminate">true</item>
+        <item name="android:indeterminateDrawable">@drawable/progress_indeterminate</item>
+        <item name="android:animationResolution">33</item>
+        <item name="android:indeterminateDuration">2000</item>
+    </style>
+</resources>

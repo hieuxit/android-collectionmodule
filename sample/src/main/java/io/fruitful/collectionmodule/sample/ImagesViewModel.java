@@ -1,12 +1,16 @@
 package io.fruitful.collectionmodule.sample;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import android.view.View;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
+
+import io.fruitful.collectionmodule.view.OnItemClickListener;
 import io.fruitful.collectionmodule.view.RecyclerAdapter;
-import io.fruitful.collectionmodule.view.SimpleRecyclerAdapter;
-import io.fruitful.collectionmodule.viewmodel.CollectionViewModel;
+import io.fruitful.collectionmodule.view.SimplePagingRecyclerAdapter;
+import io.fruitful.collectionmodule.viewmodel.PagingViewModel;
 import rx.Observable;
 import rx.functions.Func0;
 import rx.functions.Func1;
@@ -17,7 +21,7 @@ import rx.schedulers.Schedulers;
  * Created by hieuxit on 9/27/16.
  */
 
-public class ImagesViewModel extends CollectionViewModel<List<String >, String> {
+public class ImagesViewModel extends PagingViewModel<List<String>, String> {
     static final String BASE = "http://i.imgur.com/";
     static final String EXT = ".jpg";
     static final String[] URLS = {
@@ -35,24 +39,83 @@ public class ImagesViewModel extends CollectionViewModel<List<String >, String> 
             BASE + "z77CaIt" + EXT,
     };
 
-    @Override
-    protected RecyclerAdapter createAdapter() {
-        return new SimpleRecyclerAdapter(R.layout.item_image);
+    public ImagesViewModel() {
+        setResetWhenRefresh(true);
     }
 
     @Override
-    protected Observable<List<String>> source() {
+    protected RecyclerAdapter createAdapter() {
+        SimplePagingRecyclerAdapter<String> adapter = new SimplePagingRecyclerAdapter<>(R.layout.item_image);
+        adapter.setOnItemClickListener(new OnItemClickListener<String>() {
+            @Override
+            public void onItemClick(View itemView, String data, int position) {
+
+            }
+        });
+        return adapter;
+    }
+
+    Random random = new Random();
+    int totalPage = 4;
+
+    @Override
+    protected Observable<List<String>> sourceOfPage(final int pageIndex) {
         return Observable.defer(new Func0<Observable<List<String>>>() {
             @Override
             public Observable<List<String>> call() {
-                try {
-                    Thread.sleep(2000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                return Observable.just((List<String>)new ArrayList<>(Arrays.asList(URLS)));
+                return Observable.timer(1, TimeUnit.SECONDS).map(new Func1<Long, List<String>>() {
+                    @Override
+                    public List<String> call(Long aLong) {
+                        int rand = random.nextInt(5);
+                        switch (rand) {
+                            case 2:
+                                throw new IllegalArgumentException("Crash for test");
+
+                            case 0:
+                            case 4:
+                                return new ArrayList<>();
+                            default:
+                                int numberItemOfPage = URLS.length / totalPage;
+                                ArrayList<String> images = new ArrayList<>();
+                                for (int i = 0; i < numberItemOfPage; i++) {
+                                    int index = pageIndex * numberItemOfPage + i;
+                                    if (index >= URLS.length) break;
+                                    images.add(URLS[index]);
+                                }
+                                return images;
+                        }
+                    }
+                });
             }
         }).subscribeOn(Schedulers.io());
+    }
+
+//    @Override
+//    protected Observable<List<String>> source() {
+//        return Observable.defer(new Func0<Observable<List<String>>>() {
+//            @Override
+//            public Observable<List<String>> call() {
+//                return Observable.timer(1, TimeUnit.SECONDS).map(new Func1<Long, List<String>>() {
+//                    @Override
+//                    public List<String> call(Long aLong) {
+//                        int rand = random.nextInt(3);
+//                        switch (rand) {
+//                            case 1:
+//                                return new ArrayList<String>();
+//                            case 2:
+//                                throw new IllegalArgumentException("Crash for test");
+//                            default:
+//                                return new ArrayList<>(Arrays.asList(URLS));
+//                        }
+//                    }
+//                });
+//            }
+//        }).subscribeOn(Schedulers.io());
+//    }
+
+    @Override
+    protected boolean noMorePages(List<String> response) {
+        return response == null || response.size() == 0;
     }
 
     @Override

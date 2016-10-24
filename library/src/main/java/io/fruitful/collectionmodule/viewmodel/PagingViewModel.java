@@ -3,16 +3,19 @@ package io.fruitful.collectionmodule.viewmodel;
 import android.os.Bundle;
 import android.view.View;
 
+import java.util.List;
+
 import io.fruitful.collectionmodule.rx.CollectionBinding;
 import io.fruitful.collectionmodule.rx.PagedCollectionBinding;
 import io.fruitful.collectionmodule.rx.Pager;
 import io.fruitful.collectionmodule.rx.PagingAwareAdapter;
+import io.fruitful.collectionmodule.view.IEmptyView;
 import rx.Observable;
 
 /**
  * Created by hieuxit on 1/4/16.
  */
-public abstract class PagingViewModel<ResponseType, Item> extends CollectionViewModel<ResponseType, Item> implements View.OnClickListener, PagingAwareAdapter.OnNextPageListener {
+public abstract class PagingViewModel<ResponseType, Item> extends CollectionViewModel<ResponseType, Item> implements PagingAwareAdapter.OnNextPageListener {
 
     private static final int DEFAULT_PAGE_SIZE = 20;
     private PagingAwareAdapter pagedAdapter;
@@ -22,7 +25,6 @@ public abstract class PagingViewModel<ResponseType, Item> extends CollectionView
      * start of paging index
      */
     private int pageIndex = 0;
-    private PagingAwareAdapter.PagingState pagingState = PagingAwareAdapter.PagingState.IDLE;
 
     @Override
     public void resetToBinding(CollectionBinding<Item> collectionBinding) {
@@ -37,43 +39,48 @@ public abstract class PagingViewModel<ResponseType, Item> extends CollectionView
 
         pagedCollectionBinding = (PagedCollectionBinding) collectionBinding;
         pagedAdapter = pagedCollectionBinding.adapter();
-        ensurePagingState();
-        pagedAdapter.setOnErrorRetryListener(this);
+
+        pagedAdapter.setOnErrorRetryListener(onPagingRetryClickListener);
         pagedAdapter.setOnNexPageListener(this);
+        pagedAdapter.setPagingState(PagingAwareAdapter.PagingState.IDLE);
     }
 
-    void setPagingState(PagingAwareAdapter.PagingState pagingState) {
-        this.pagingState = pagingState;
-        if (pagedAdapter != null) {
-            pagedAdapter.setPagingState(pagingState);
+    private View.OnClickListener onPagingRetryClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            // retry to get collection if error
+            resetToBinding(pagedCollectionBinding.fromCurrentPage());
+            setPagingState(PagingAwareAdapter.PagingState.LOADING);
+            setDisableEmptyView(true);
+            connect();
         }
-    }
-
-    void ensurePagingState() {
-        if (pagedAdapter != null) {
-            pagedAdapter.setPagingState(pagingState);
-        }
-    }
-
-    @Override
-    public void onClick(View v) {
-        // retry to get collection if error
-        resetToBinding(pagedCollectionBinding.fromCurrentPage());
-        setPagingState(PagingAwareAdapter.PagingState.LOADING);
-    }
+    };
 
     @Override
     public void onNextPage() {
-        pagedCollectionBinding.pager().next();
+        // only call next if hasNext :)
+        if (pagedCollectionBinding != null && pagedCollectionBinding.pager().hasNext()) {
+            pagedCollectionBinding.pager().next();
+            pagedAdapter.setPagingState(PagingAwareAdapter.PagingState.LOADING);
+        }
     }
 
     protected abstract Observable<ResponseType> sourceOfPage(int pageIndex);
 
     @Override
-    protected Observable<ResponseType> source() {
-        setPagingState(PagingAwareAdapter.PagingState.LOADING);
+    protected final Observable<ResponseType> source() {
         pageIndex = getStartIndex();
         return sourceOfPage(pageIndex); // only call with page 0
+    }
+
+    @Override
+    public void refresh() {
+        super.refresh();
+        pagedCollectionBinding.pager().reset();
+        if (pagedAdapter != null && isDisableEmptyView()) {
+            // clear all
+            pagedAdapter.setPagingState(PagingAwareAdapter.PagingState.LOADING);
+        }
     }
 
     protected CollectionBinding<Item> onBuildCollectionBinding(Bundle args) {
@@ -91,21 +98,18 @@ public abstract class PagingViewModel<ResponseType, Item> extends CollectionView
         this.pageSize = pageSize;
     }
 
+    public int getPageIndex() {
+        return pageIndex;
+    }
+
     protected abstract boolean noMorePages(ResponseType response);
 
     protected Pager.PagingFunction<ResponseType> pagingFunction() {
-
         return new Pager.PagingFunction<ResponseType>() {
             @Override
             public Observable<ResponseType> call(ResponseType responseType) {
                 if (noMorePages(responseType)) {
-                    if (pagedAdapter != null) {
-                        pagedAdapter.setPagingState(PagingAwareAdapter.PagingState.IDLE);
-                    }
                     return Pager.finish();
-                }
-                if (pagedAdapter != null) {
-                    pagedAdapter.setPagingState(PagingAwareAdapter.PagingState.LOADING);
                 }
                 pageIndex++;
                 return sourceOfPage(pageIndex);
@@ -118,8 +122,39 @@ public abstract class PagingViewModel<ResponseType, Item> extends CollectionView
     }
 
     @Override
-    public void reset() {
-        super.reset();
-        pagedAdapter.setPagingState(PagingAwareAdapter.PagingState.IDLE);
+    public void pullToRefresh() {
+        super.pullToRefresh();
+        if (pagedAdapter != null) {
+            pagedAdapter.setPagingState(PagingAwareAdapter.PagingState.IDLE);
+        }
+    }
+
+    @Override
+    void onClickRetryEmptyView() {
+        super.onClickRetryEmptyView();
+    }
+
+    @Override
+    void onNextEmptyView(List<Item> items) {
+        super.onNextEmptyView(items);
+    }
+
+    protected void setPagingState(PagingAwareAdapter.PagingState state) {
+        if (pagedAdapter == null) return;
+        pagedAdapter.setPagingState(state);
+    }
+
+    @Override
+    void onErrorEmptyView() {
+        // always hide the pull to refresh
+        setRefreshing(false);
+        if (isAdapterEmpty()) {
+            // Show empty error and hide paging error
+            setEmptyViewMode(IEmptyView.ERROR);
+            setPagingState(PagingAwareAdapter.PagingState.IDLE);
+        } else {
+            setEmptyViewMode(IEmptyView.HIDE);
+            setPagingState(PagingAwareAdapter.PagingState.ERROR);
+        }
     }
 }

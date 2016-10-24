@@ -4,8 +4,10 @@
     android:layout_height="wrap_content"
     android:padding="16dp">
 
-    <ProgressBar
+    <io.fruitful.collectionmodule.view.TintProgressBar
+        android:id="@+id/paging_progress"
+        style="@style/CollectionProgress"
         android:layout_width="24dp"
         android:layout_height="24dp"
-        android:layout_gravity="center"/>
+        android:layout_gravity="center" />
 </FrameLayout>
