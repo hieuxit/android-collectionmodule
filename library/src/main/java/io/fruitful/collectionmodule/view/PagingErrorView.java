@@ -21,7 +21,7 @@ import io.fruitful.collectionmodule.R;
  * Created by hieuxit on 10/21/16.
  */
 
-class PagingErrorView extends FrameLayout {
+public class PagingErrorView extends FrameLayout {
 
     private TextView mTextError;
     private Button mBtnRetry;
